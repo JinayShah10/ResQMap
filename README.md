@@ -28,12 +28,21 @@ The core workflow for the initial version (V1) is planned as:
 * **Geospatial Services:** Exact services for nearby facility discovery, geocoding, and routing will be selected and documented when those features are implemented. Specific external APIs are not finalized or integrated during Phase 0.
 * **Future AI Direction:** LangChain, RAG, and agentic AI are future possibilities and are not part of the initial V1 implementation. They must not be implemented or configured during Phase 0.
 
-### Map Visualization Direction
-ResQMap will support two visualization modes:
-* **2D Map Mode:** A conventional top-down interactive map supporting panning, zooming, marker display, and routing.
-* **3D Map Mode:** A perspective-based map view supporting map pitch/tilt, rotation, 3D building visualization (where supported by the style/data source), and perspective camera movement.
+## Frontend Visual Direction
+ResQMap features a dark, modern, map-first interface inspired by professional geospatial command-center and location-discovery interfaces. The visual system includes:
+* **Map-First Layout:** The interactive map acts as the primary visual element, filling the main viewport.
+* **Dark Application Theme:** A professional dark interface with a dark map style, high-contrast roads/features, clearly visible facility markers, and a restrained accent color for active states and important actions.
+* **Left-Side Control/Results Panel:** A compact sidebar containing search inputs, category selection controls, and nearby facility list results.
+* **Facility Detail Card:** A dedicated overlay card or panel presenting information (e.g., name, address, distance, contact details, and routing details) when a facility is selected.
+* **2D/3D Map Switching:** A clean header or panel control to toggle camera rendering modes.
+* **Purposeful UI Animations:** Functional animations to improve spatial understanding, such as smooth transitions for sliding panels, staggered entries for facility results, map marker animations when loaded or selected (scaling/pulsing), and smooth camera transitions when focusing on a selected facility or switching map modes.
 
-Both modes are driven by the same underlying map and application state. Switching between the 2D and 3D modes is controlled by a user interface toggle in the frontend and does not duplicate map systems or core application logic.
+## Map Visualization
+ResQMap supports a planned 2D mode and a planned 3D/perspective mode using the same MapLibre-based map foundation:
+* **2D Map Mode:** A conventional top-down interactive map view supporting panning, zooming, marker display, and routing, suitable for quickly understanding roads and locations.
+* **3D/Perspective Map Mode:** A perspective-based map view supporting camera pitch/tilt, bearing/rotation, more immersive spatial visualization, and 3D building visualization where supported by the style/data source.
+
+Both modes are visualization options built on a single shared map engine and underlying application data (such as coordinates, selected category, and facility data). The user can switch between these modes via a UI control. No 3D building data or specific tile provider is finalized at this stage.
 
 ### Incremental Development Principle
 ResQMap will be developed incrementally. Features and dependencies must not be added before their planned development stage. We adhere strictly to the roadmap, ensuring each phase is verified and stable before moving forward.

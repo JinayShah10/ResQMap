@@ -19,6 +19,15 @@ The core objective remains helping users discover nearby emergency facilities an
 ## Intended User
 The primary users of ResQMap are individuals looking for immediate, nearby emergency services. This includes residents, travelers, and anyone requiring quick access to essential facilities in critical times. The interface must remain clean, accessible, and fast under varying network conditions.
 
+## Frontend Visual Identity and Direction
+The ResQMap frontend follows a refined, high-fidelity visual direction optimized for swift decision-making and spatial awareness:
+* **Dark Modern Geospatial Interface:** Driven by a dark application theme with high-contrast geography, low-glare dark map styles, clear high-contrast markers, and a single restrained accent color for key highlights (avoiding overwhelming red tones).
+* **Map-First Application Design:** The MapLibre interactive map serves as the primary visual element, maximized to fill the main screen layout.
+* **Sidebar Controls & Facility Results:** A compact sidebar houses search inputs, emergency category selectors, and a list of nearby results.
+* **Facility Detail Interaction:** Overlaid facility details and card components update immediately to display address, contact, and routing details.
+* **2D & 3D Visualization Modes:** Users can seamlessly toggle between a top-down 2D map for flat navigation and a tilted perspective 3D map featuring buildings (where supported) to aid spatial matching.
+* **Purposeful Animated Interactions:** Transitions are strictly functional, using smooth easing for sliding UI panels, staggered result entries, pulsing marker behaviors, and smooth camera transitions when centering on selections or changing camera pitch/tilt.
+
 ## Planned Core User Workflow
 The planned sequence of user actions for the core V1 experience:
 1. **User Location:** The application detects the user's location via GPS/Geolocation API or allows manual entry.

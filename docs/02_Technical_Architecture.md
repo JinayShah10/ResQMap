@@ -28,34 +28,42 @@ This document describes the planned high-level technical architecture for ResQMa
 
 ---
 
-## Planned Mapping Architecture
+## Planned Mapping and UI Architecture
 
-The frontend map visualization is structured conceptually as follows:
+The frontend map visualization and UI hierarchy are structured conceptually as follows:
 
 ```
-  React (App Container / UI)
-     ↓
-  React-compatible MapLibre integration
-     ↓
-  MapLibre GL JS (Map Engine)
-     ↓
-  Map style + vector tile source (OpenStreetMap-compatible)
-     ↓
-  2D or 3D camera/rendering mode (User toggle)
+React (App Container)
+    ↓
+Application UI
+    ├── Navigation/Header
+    ├── Control and Results Panel
+    ├── Facility Information UI
+    └── Map View
+            ↓
+      MapLibre GL JS
+            ↓
+      2D or 3D/Perspective Camera
+            ↓
+      Map Style + Vector Tile Source
 ```
 
 ### Shared Map and Application State
-To ensure consistency and avoid duplicate code, the application will maintain a single, shared map/application state. This state will conceptually track:
-* **Current map center** (Latitude/Longitude coordinates)
-* **Zoom level** (Numeric scale)
-* **Bearing** (Map rotation angle in degrees)
+To ensure consistency and avoid duplicate code, the application will maintain a single, shared application state. This state will conceptually track:
+* **Current map mode** (2D top-down or 3D perspective)
+* **Map center** (Latitude/Longitude coordinates)
+* **Zoom** (Numeric scale)
 * **Pitch** (Map tilt angle in degrees)
-* **Selected map mode** (2D top-down or 3D perspective)
+* **Bearing** (Map rotation angle in degrees)
 * **User location** (when implemented)
+* **Selected emergency category** (when implemented)
 * **Facility data** (when implemented)
 * **Selected facility** (when implemented)
 
 *Note: This state architecture is documented for future planning. No state implementation is done during Phase 0.*
+
+### UI Interactions and Animation Layer
+Animation behavior belongs to the frontend interaction layer and should be coordinated with map state changes where necessary. Transitions (such as panel slides, staggered result listings, scale/pulse effects on selected markers, and camera transition panning) are linked directly to application state updates. No specific animation library is prescribed at this stage.
 
 ### 2D vs. 3D Rendering Modes
 Both visualization modes use the exact same underlying map engine (MapLibre GL JS) and application data, but apply different camera attributes and style layers:

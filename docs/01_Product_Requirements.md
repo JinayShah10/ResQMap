@@ -50,10 +50,15 @@ This document defines the functional requirements for the planned V1 core workfl
 * **Test Criteria:**
   * Verify that a route line is drawn on the map connecting the user's location to the selected facility marker.
 
-## Map Visualization Modes
-* **Requirement 1:** The application shall provide a 2D map mode representing a conventional top-down interactive map.
-* **Requirement 2:** The application shall provide a 3D/perspective map mode.
-* **Requirement 3:** The user shall be able to switch between the 2D and 3D modes using a frontend control.
-* **Requirement 4:** Both modes shall use the same underlying location and facility data (shared state).
-* **Requirement 5:** Switching modes shall not change the selected emergency category or discovered facility results.
-* **Requirement 6:** The 3D mode may use camera pitch, bearing, and supported 3D building visualization.
+## Frontend Visualization and Interaction Requirements
+1. **Requirement:** The application shall provide a dark primary visual theme.
+2. **Requirement:** The map shall be the primary visual area of the application.
+3. **Requirement:** The application shall provide a control and results area for user interaction (sidebar layout).
+4. **Requirement:** Facility results and map markers shall represent the same underlying facilities.
+5. **Requirement:** Selecting a facility from the results should eventually provide corresponding visual feedback on the map (centering, highlighting, route visualization).
+6. **Requirement:** Selecting a map facility should eventually provide corresponding visual feedback in the results interface.
+7. **Requirement:** The application shall provide 2D and 3D/perspective map visualization modes.
+8. **Requirement:** The user shall be able to switch between the supported map modes.
+9. **Requirement:** The two map modes shall use shared underlying application and facility data.
+10. **Requirement:** User interface transitions and map interactions should use purposeful animations where appropriate (marker loads, panel collapses, camera swoops, route drawing).
+11. **Requirement:** Animations must not interfere with usability or application performance.
