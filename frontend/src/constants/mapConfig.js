@@ -18,6 +18,10 @@ export const MAP_STYLES = {
         ],
         tileSize: 256,
         attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USDA, USGS, AeroGRID, IGN, and the GIS User Community'
+      },
+      'carto-vector': {
+        type: 'vector',
+        url: 'https://tiles.basemaps.cartocdn.com/vector/carto.streets/v1/tiles.json'
       }
     },
     layers: [

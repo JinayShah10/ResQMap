@@ -8,8 +8,15 @@ import {
   CAMERA_TRANSITION_DURATION
 } from '../../constants/mapConfig';
 
+// Helper to determine active building opacity based on theme & mode
+const getBuildingOpacity = (map, currentMode) => {
+  if (currentMode !== '3D') return 0;
+  const isRaster = map.getStyle().layers.some(l => l.type === 'raster');
+  return isRaster ? 0.45 : 0.65; // Translucent on Satellite overlay, standard slate on Dark
+};
+
 // Helper function to dynamically add 3D buildings if supported by style
-const add3DBuildingLayer = (map) => {
+const add3DBuildingLayer = (map, currentMode) => {
   if (map.getLayer('3d-buildings')) return;
 
   const style = map.getStyle();
@@ -31,6 +38,8 @@ const add3DBuildingLayer = (map) => {
       }
     }
 
+    const isRaster = layers.some(l => l.type === 'raster');
+
     // Add 3D extrusion layer for buildings
     map.addLayer(
       {
@@ -40,14 +49,23 @@ const add3DBuildingLayer = (map) => {
         type: 'fill-extrusion',
         minzoom: 14,
         paint: {
-          'fill-extrusion-color': [
-            'interpolate',
-            ['linear'],
-            ['coalesce', ['get', 'render_height'], ['get', 'height'], 10],
-            0, '#1a1e27',   // Lighter slate surface
-            30, '#252c39',  // Medium slate
-            100, '#333d4f'  // Highlight slate
-          ],
+          // Emerald HUD color for satellite view, standard slate color for dark mode
+          'fill-extrusion-color': isRaster
+            ? [
+                'interpolate',
+                ['linear'],
+                ['coalesce', ['get', 'render_height'], ['get', 'height'], 10],
+                0, '#047857',   // Emerald 700 (darker bottom)
+                100, '#34d399'  // Emerald 400 (glowing tops)
+              ]
+            : [
+                'interpolate',
+                ['linear'],
+                ['coalesce', ['get', 'render_height'], ['get', 'height'], 10],
+                0, '#1a1e27',   // Lighter slate surface
+                30, '#252c39',  // Medium slate
+                100, '#333d4f'  // Highlight slate
+              ],
           'fill-extrusion-height': [
             'interpolate',
             ['linear'],
@@ -72,7 +90,7 @@ const add3DBuildingLayer = (map) => {
               0
             ]
           ],
-          'fill-extrusion-opacity': 0.65
+          'fill-extrusion-opacity': getBuildingOpacity(map, currentMode)
         }
       },
       labelLayerId
@@ -115,14 +133,14 @@ const MapView = ({ mode, mapStyle }) => {
 
     // Run whenever a style finishes loading (on initial load and style changes)
     map.on('style.load', () => {
-      add3DBuildingLayer(map);
+      add3DBuildingLayer(map, modeRef.current);
       
       // Sync opacity based on current camera view mode
       if (map.getLayer('3d-buildings')) {
         map.setPaintProperty(
           '3d-buildings',
           'fill-extrusion-opacity',
-          modeRef.current === '3D' ? 0.65 : 0
+          getBuildingOpacity(map, modeRef.current)
         );
       }
     });
@@ -164,7 +182,7 @@ const MapView = ({ mode, mapStyle }) => {
       map.setPaintProperty(
         '3d-buildings',
         'fill-extrusion-opacity',
-        mode === '3D' ? 0.65 : 0
+        getBuildingOpacity(map, mode)
       );
     }
   }, [mode]);
