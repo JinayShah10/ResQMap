@@ -1,0 +1,71 @@
+@import "tailwindcss";
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+@theme {
+  /* Slate-grey palette, shift away from deep navy blue */
+  --color-slate-950: #12141a; /* Application background */
+  --color-slate-900: #1a1e27; /* Raised panels (Header, Sidebar) */
+  --color-slate-800: #252c39; /* Cards, inputs, select-states */
+  --color-slate-700: #333d4f; /* Interactive hover surfaces */
+  --color-slate-600: #49546a; /* Secondary text and borders */
+  --color-slate-500: #62728f; /* Placeholder text and icons */
+  --color-slate-400: #8898b5;
+  --color-slate-300: #b0bcd3;
+  --color-slate-200: #d4dae6;
+  --color-slate-100: #f1f3f7; /* High contrast text */
+
+  /* Restrained geospatial Emerald accent */
+  --color-emerald-400: #34d399;
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--color-slate-950);
+  color: var(--color-slate-100);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+
+/* Entrance Animations */
+@keyframes fadeInHeader {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInSidebar {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in-header {
+  animation: fadeInHeader 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-fade-in-sidebar {
+  animation: fadeInSidebar 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-header, .animate-fade-in-sidebar {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* Custom geospatial focus styles and scrollbar overrides */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-slate-800);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-slate-700);
+}
