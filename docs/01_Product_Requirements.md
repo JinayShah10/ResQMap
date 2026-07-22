@@ -25,7 +25,7 @@ This document defines the functional requirements for the planned V1 core workfl
 
 ## 4. Map Display
 * **Requirement:** The system must render an interactive map displaying the user's location and nearby facility markers.
-* **Details:** The map will use OpenStreetMap tiles rendered via Leaflet/React Leaflet. The map must center on the user's location and plot markers for the user and each discovered facility.
+* **Details:** The map will use OpenStreetMap-compatible vector tiles rendered via MapLibre GL JS (and a React-compatible integration). The map must center on the user's location and plot markers for the user and each discovered facility.
 * **Test Criteria:**
   * Verify that the map is visible on the screen.
   * Verify that a distinct marker represents the user.
@@ -49,3 +49,11 @@ This document defines the functional requirements for the planned V1 core workfl
 * **Details:** Upon selection, the application will compute routing steps and draw a polyline route on the map showing the path to the facility.
 * **Test Criteria:**
   * Verify that a route line is drawn on the map connecting the user's location to the selected facility marker.
+
+## Map Visualization Modes
+* **Requirement 1:** The application shall provide a 2D map mode representing a conventional top-down interactive map.
+* **Requirement 2:** The application shall provide a 3D/perspective map mode.
+* **Requirement 3:** The user shall be able to switch between the 2D and 3D modes using a frontend control.
+* **Requirement 4:** Both modes shall use the same underlying location and facility data (shared state).
+* **Requirement 5:** Switching modes shall not change the selected emergency category or discovered facility results.
+* **Requirement 6:** The 3D mode may use camera pitch, bearing, and supported 3D building visualization.

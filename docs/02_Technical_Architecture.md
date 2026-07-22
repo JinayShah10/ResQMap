@@ -9,8 +9,8 @@ This document describes the planned high-level technical architecture for ResQMa
 * **Role:**
   * Render the user interface, including lists, search controls, and detailed facility cards.
   * Obtain user geolocation via browser APIs.
-  * Render the interactive map using Leaflet and React Leaflet.
-  * Handle client-side routing, user input, and state management.
+  * Render the interactive map using MapLibre GL JS and a React-compatible MapLibre integration.
+  * Handle client-side routing, user input, and state management (including shared map state between 2D and 3D modes).
 
 ### 2. Backend Responsibility
 * **Technology:** Node.js, Express.
@@ -20,11 +20,48 @@ This document describes the planned high-level technical architecture for ResQMa
   * Formulate structured responses for the frontend.
 
 ### 3. Map / Geospatial Service Responsibility
-* **Technology:** OpenStreetMap (for map tiles), Leaflet (for client-side map rendering), and future routing/discovery APIs.
+* **Technology:** OpenStreetMap-compatible vector tiles, MapLibre GL JS (for client-side rendering), and future routing/discovery APIs.
 * **Role:**
-  * Provide map imagery tiles for the user interface.
+  * Provide vector map tiles and style sheets for rendering.
   * Provide routing coordinates to draw paths on the map.
   * Provide geospatial query lookup for nearby facilities based on coordinates.
+
+---
+
+## Planned Mapping Architecture
+
+The frontend map visualization is structured conceptually as follows:
+
+```
+  React (App Container / UI)
+     ↓
+  React-compatible MapLibre integration
+     ↓
+  MapLibre GL JS (Map Engine)
+     ↓
+  Map style + vector tile source (OpenStreetMap-compatible)
+     ↓
+  2D or 3D camera/rendering mode (User toggle)
+```
+
+### Shared Map and Application State
+To ensure consistency and avoid duplicate code, the application will maintain a single, shared map/application state. This state will conceptually track:
+* **Current map center** (Latitude/Longitude coordinates)
+* **Zoom level** (Numeric scale)
+* **Bearing** (Map rotation angle in degrees)
+* **Pitch** (Map tilt angle in degrees)
+* **Selected map mode** (2D top-down or 3D perspective)
+* **User location** (when implemented)
+* **Facility data** (when implemented)
+* **Selected facility** (when implemented)
+
+*Note: This state architecture is documented for future planning. No state implementation is done during Phase 0.*
+
+### 2D vs. 3D Rendering Modes
+Both visualization modes use the exact same underlying map engine (MapLibre GL JS) and application data, but apply different camera attributes and style layers:
+* **2D Mode:** Uses a top-down camera configuration (pitch = 0, bearing = 0).
+* **3D Mode:** Uses pitch/tilt (camera angle greater than 0, up to 60 or 85 degrees depending on engine limits), bearing/rotation, and renders 3D building polygon extrusions where supported by the style and tile source.
+* **Style and Tile Provider:** The exact style and vector tile provider are undecided until the frontend implementation phase, and will be selected based on performance, cost, licensing, and 3D feature support.
 
 ---
 
@@ -39,12 +76,12 @@ graph TD
     Backend -->|Proxies request / queries geolocation & routing| GeoServices[External Map/Geospatial Services]
     GeoServices -->|Returns geospatial data / routes / tiles| Backend
     Backend -->|Returns structured JSON response| Frontend
-    Frontend -->|Renders map, markers, routes & info| User
+    Frontend -->|Renders 2D/3D map, markers, routes & info| User
 ```
 
-Alternatively, standard tile loading occurs directly:
+Alternatively, vector tiles are requested directly by the map component:
 ```
-User -> React Frontend -> External Map/Geospatial Services (OSM Tile Servers) -> React Frontend -> User
+User -> React Frontend -> Vector Tile Provider -> React Frontend (MapLibre GL JS) -> User
 ```
 
-*Note: Exact routing and geocoding services are to be decided in future implementation phases.*
+*Note: Exact routing, geocoding, and map tile services are to be decided in future implementation phases.*
