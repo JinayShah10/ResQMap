@@ -152,6 +152,7 @@ const MapView = ({ mode, mapStyle }) => {
         mapRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Handle Map Style changes dynamically while preserving camera state
