@@ -69,3 +69,39 @@ html, body, #root {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-slate-700);
 }
+
+/* Custom MapLibre Popup Styling to match ResQMap theme */
+.maplibregl-popup-content {
+  background-color: #1a1e27 !important;
+  color: #f1f3f7 !important;
+  border: 1px solid #252c39 !important;
+  border-radius: 0.75rem !important;
+  padding: 0.75rem 1rem !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.5) !important;
+  font-family: inherit;
+}
+
+.maplibregl-popup-anchor-top .maplibregl-popup-tip {
+  border-bottom-color: #1a1e27 !important;
+}
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+  border-top-color: #1a1e27 !important;
+}
+.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  border-right-color: #1a1e27 !important;
+}
+.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  border-left-color: #1a1e27 !important;
+}
+.maplibregl-popup-anchor-top-left .maplibregl-popup-tip {
+  border-bottom-color: #1a1e27 !important;
+}
+.maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+  border-bottom-color: #1a1e27 !important;
+}
+.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip {
+  border-top-color: #1a1e27 !important;
+}
+.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+  border-top-color: #1a1e27 !important;
+}
