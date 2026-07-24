@@ -1,9 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
 import MapView from './components/map/MapView';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!localStorage.getItem('token');
+  });
+
+  const getInitialPage = () => {
+    const path = window.location.pathname;
+    if (path === '/app') {
+      return isAuthenticated ? 'dashboard' : 'signup';
+    }
+    if (path === '/login') {
+      return 'login';
+    }
+    return 'signup';
+  };
+
+  const [page, setPageState] = useState(getInitialPage);
+
+  const setPage = (newPage) => {
+    if (newPage === 'dashboard') {
+      if (isAuthenticated) {
+        setPageState('dashboard');
+        window.history.pushState({}, '', '/app');
+      } else {
+        setPageState('signup');
+        window.history.pushState({}, '', '/');
+      }
+    } else if (newPage === 'login') {
+      setPageState('login');
+      window.history.pushState({}, '', '/login');
+    } else {
+      setPageState('signup');
+      window.history.pushState({}, '', '/');
+    }
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      const isAuth = !!localStorage.getItem('token');
+      setIsAuthenticated(isAuth);
+      
+      if (path === '/app') {
+        setPageState(isAuth ? 'dashboard' : 'signup');
+      } else if (path === '/login') {
+        setPageState('login');
+      } else {
+        setPageState('signup');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    
+    const path = window.location.pathname;
+    if (path === '/app' && !isAuthenticated) {
+      window.history.replaceState({}, '', '/');
+    } else if (path === '/' && isAuthenticated) {
+      setPageState('dashboard');
+      window.history.replaceState({}, '', '/app');
+    }
+
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [isAuthenticated]);
+
   const [mode, setMode] = useState('2D');
   const [mapStyle, setMapStyle] = useState('DARK');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -16,6 +81,15 @@ function App() {
     setSelectedFacility(null);
   };
 
+  // Render Authentication Pages
+  if (page === 'login') {
+    return <Login onNavigate={setPage} onBackToMap={() => setPage('dashboard')} isAuthenticated={isAuthenticated} />;
+  }
+
+  if (page === 'signup') {
+    return <Signup onNavigate={setPage} onBackToMap={() => setPage('dashboard')} isAuthenticated={isAuthenticated} />;
+  }
+
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-slate-950 flex flex-col text-slate-100">
       {/* Header Branding & Controls */}
@@ -25,7 +99,8 @@ function App() {
         mapStyle={mapStyle}
         setMapStyle={setMapStyle}
         isSidebarOpen={isSidebarOpen} 
-        setIsSidebarOpen={setIsSidebarOpen} 
+        setIsSidebarOpen={setIsSidebarOpen}
+        onNavigate={setPage}
       />
 
       {/* Main Geospatial Interface */}
