@@ -106,6 +106,140 @@ const MapView = ({ mode, mapStyle, selectedCategory, selectedFacility, setSelect
   const markersRef = useRef([]);
   const popupRef = useRef(null);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [hasCentered, setHasCentered] = useState(false);
+  const userMarkerInstanceRef = useRef(null);
+
+  // Inject custom CSS for user location marker animations
+  useEffect(() => {
+    const styleEl = document.createElement('style');
+    styleEl.innerHTML = `
+      @keyframes userLocationPulse {
+        0% {
+          transform: scale(0.9);
+          box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+        }
+        70% {
+          transform: scale(1);
+          box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+        }
+        100% {
+          transform: scale(0.9);
+          box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+        }
+      }
+      .user-location-marker {
+        width: 100%;
+        height: 100%;
+        background-color: #3b82f6;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        box-shadow: 0 0 8px rgba(59, 130, 246, 0.8);
+        animation: userLocationPulse 2s infinite ease-in-out;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .user-location-inner {
+        width: 8px;
+        height: 8px;
+        background-color: #ffffff;
+        border-radius: 50%;
+      }
+    `;
+    document.head.appendChild(styleEl);
+    return () => {
+      styleEl.remove();
+    };
+  }, []);
+
+  // Track browser geolocation
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      console.warn('Geolocation is not supported by this browser.');
+      return;
+    }
+
+    const handleSuccess = (position) => {
+      const { latitude, longitude } = position.coords;
+      setUserLocation({ latitude, longitude });
+    };
+
+    const handleError = (error) => {
+      console.warn(`Geolocation error: ${error.message}`);
+    };
+
+    // Request initial position
+    navigator.geolocation.getCurrentPosition(handleSuccess, handleError, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0,
+    });
+
+    // Start watchPosition for updates
+    const watchId = navigator.geolocation.watchPosition(handleSuccess, handleError, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0,
+    });
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+    };
+  }, []);
+
+  // Update user marker on coordinate changes and fly to location once
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isMapReady || !userLocation) return;
+
+    const { latitude, longitude } = userLocation;
+
+    if (!userMarkerInstanceRef.current) {
+      const container = document.createElement('div');
+      container.style.width = '20px';
+      container.style.height = '20px';
+      container.style.display = 'flex';
+      container.style.alignItems = 'center';
+      container.style.justifyContent = 'center';
+
+      const inner = document.createElement('div');
+      inner.className = 'user-location-marker';
+      
+      const dot = document.createElement('div');
+      dot.className = 'user-location-inner';
+      inner.appendChild(dot);
+      
+      container.appendChild(inner);
+
+      userMarkerInstanceRef.current = new maplibregl.Marker({ element: container })
+        .setLngLat([longitude, latitude])
+        .addTo(map);
+    } else {
+      userMarkerInstanceRef.current.setLngLat([longitude, latitude]);
+    }
+
+    // Centering the map on the user's location on initial load
+    if (!hasCentered) {
+      map.flyTo({
+        center: [longitude, latitude],
+        zoom: 14.0,
+        duration: 1500,
+        essential: true
+      });
+      setHasCentered(true);
+    }
+  }, [userLocation, isMapReady, hasCentered]);
+
+  // Clean up user marker on unmount
+  useEffect(() => {
+    return () => {
+      if (userMarkerInstanceRef.current) {
+        userMarkerInstanceRef.current.remove();
+        userMarkerInstanceRef.current = null;
+      }
+    };
+  }, []);
   
   // Track current mode in ref to avoid stale state in map event listeners
   useEffect(() => {
