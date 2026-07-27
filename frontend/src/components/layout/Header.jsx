@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Header = ({ mode, setMode, mapStyle, setMapStyle, isSidebarOpen, setIsSidebarOpen, onNavigate }) => {
+const Header = ({ mode, setMode, mapStyle, setMapStyle, isSidebarOpen, setIsSidebarOpen, onNavigate, isAuthenticated, onLogout }) => {
   return (
     <header className="fixed top-0 left-0 right-0 h-16 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 z-50 px-4 md:px-6 flex items-center justify-between select-none animate-fade-in-header">
       {/* Mobile Hamburger & Logo */}
@@ -86,13 +86,22 @@ const Header = ({ mode, setMode, mapStyle, setMapStyle, isSidebarOpen, setIsSide
           </button>
         </div>
 
-        {/* Sign In Button */}
-        <button
-          onClick={() => onNavigate('login')}
-          className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-3 md:px-4 py-1.5 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider transition-colors duration-250 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 active:scale-95 select-none"
-        >
-          Sign In
-        </button>
+        {/* Sign In / Sign Out Button */}
+        {isAuthenticated ? (
+          <button
+            onClick={onLogout}
+            className="bg-rose-500 hover:bg-rose-400 text-slate-950 px-3 md:px-4 py-1.5 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider transition-colors duration-250 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50 active:scale-95 select-none"
+          >
+            Sign Out
+          </button>
+        ) : (
+          <button
+            onClick={() => onNavigate('login')}
+            className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-3 md:px-4 py-1.5 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider transition-colors duration-250 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 active:scale-95 select-none"
+          >
+            Sign In
+          </button>
+        )}
       </div>
     </header>
   );

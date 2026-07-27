@@ -20,8 +20,20 @@ const Signup = ({ onNavigate, onBackToMap, isAuthenticated }) => {
     setError('');
     setSuccess('');
 
-    if (!name || !email || !password || !confirmPassword) {
-      setError('Please fill in all fields.');
+    if (!name) {
+      setError('Name is required.');
+      return;
+    }
+    if (!email) {
+      setError('Email is required.');
+      return;
+    }
+    if (!password) {
+      setError('Password is required.');
+      return;
+    }
+    if (!confirmPassword) {
+      setError('Please confirm your password.');
       return;
     }
 
@@ -50,7 +62,7 @@ const Signup = ({ onNavigate, onBackToMap, isAuthenticated }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Signup failed');
+        throw new Error(data.message || 'Unable to create account. Please try again.');
       }
 
       setSuccess('Account created successfully! Redirecting to sign in...');
@@ -66,9 +78,11 @@ const Signup = ({ onNavigate, onBackToMap, isAuthenticated }) => {
     } catch (err) {
       console.error(err);
       if (err.message.includes('Failed to fetch')) {
-        setError('Network error: Unable to connect to the server. Please ensure the backend is running.');
+        setError('Unable to connect to the server.');
+      } else if (err.message.includes('already registered') || err.message.includes('already exists')) {
+        setError('An account with this email already exists.');
       } else {
-        setError(err.message);
+        setError(err.message || 'Unable to create account. Please try again.');
       }
     } finally {
       setIsLoading(false);

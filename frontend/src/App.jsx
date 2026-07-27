@@ -12,8 +12,9 @@ function App() {
 
   const getInitialPage = () => {
     const path = window.location.pathname;
+    const isAuth = !!localStorage.getItem('token');
     if (path === '/app') {
-      return isAuthenticated ? 'dashboard' : 'signup';
+      return isAuth ? 'dashboard' : 'signup';
     }
     if (path === '/login') {
       return 'login';
@@ -24,8 +25,9 @@ function App() {
   const [page, setPageState] = useState(getInitialPage);
 
   const setPage = (newPage) => {
+    const isAuth = !!localStorage.getItem('token');
     if (newPage === 'dashboard') {
-      if (isAuthenticated) {
+      if (isAuth) {
         setPageState('dashboard');
         window.history.pushState({}, '', '/app');
       } else {
@@ -39,6 +41,18 @@ function App() {
       setPageState('signup');
       window.history.pushState({}, '', '/');
     }
+  };
+
+  const handleLoginSuccess = (token) => {
+    localStorage.setItem('token', token);
+    setIsAuthenticated(true);
+    setPage('dashboard');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+    setPage('login');
   };
 
   useEffect(() => {
@@ -59,9 +73,11 @@ function App() {
     window.addEventListener('popstate', handlePopState);
     
     const path = window.location.pathname;
-    if (path === '/app' && !isAuthenticated) {
+    const isAuth = !!localStorage.getItem('token');
+    if (path === '/app' && !isAuth) {
       window.history.replaceState({}, '', '/');
-    } else if (path === '/' && isAuthenticated) {
+      setPageState('signup');
+    } else if (path === '/' && isAuth) {
       setPageState('dashboard');
       window.history.replaceState({}, '', '/app');
     }
@@ -83,7 +99,7 @@ function App() {
 
   // Render Authentication Pages
   if (page === 'login') {
-    return <Login onNavigate={setPage} onBackToMap={() => setPage('dashboard')} isAuthenticated={isAuthenticated} />;
+    return <Login onNavigate={setPage} onBackToMap={() => setPage('dashboard')} isAuthenticated={isAuthenticated} onLoginSuccess={handleLoginSuccess} />;
   }
 
   if (page === 'signup') {
@@ -101,6 +117,8 @@ function App() {
         isSidebarOpen={isSidebarOpen} 
         setIsSidebarOpen={setIsSidebarOpen}
         onNavigate={setPage}
+        isAuthenticated={isAuthenticated}
+        onLogout={handleLogout}
       />
 
       {/* Main Geospatial Interface */}

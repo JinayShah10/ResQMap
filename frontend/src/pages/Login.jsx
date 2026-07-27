@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import GeospatialBackground from '../components/layout/GeospatialBackground';
 
-const Login = ({ onNavigate, onBackToMap, isAuthenticated }) => {
+const Login = ({ onNavigate, onBackToMap, isAuthenticated, onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -10,13 +10,13 @@ const Login = ({ onNavigate, onBackToMap, isAuthenticated }) => {
   const [infoMessage, setInfoMessage] = useState('');
   const [isNavExpanded, setIsNavExpanded] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setInfoMessage('');
 
     if (!email || !password) {
-      setError('Please fill in all fields.');
+      setError('Email and password are required.');
       return;
     }
 
@@ -28,10 +28,38 @@ const Login = ({ onNavigate, onBackToMap, isAuthenticated }) => {
 
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      const response = await fetch('http://localhost:5001/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Invalid email or password.');
+      }
+
+      if (onLoginSuccess) {
+        onLoginSuccess(data.token);
+      } else {
+        localStorage.setItem('token', data.token);
+        onNavigate('dashboard');
+      }
+
+    } catch (err) {
+      console.error(err);
+      if (err.message.includes('Failed to fetch')) {
+        setError('Unable to connect to the server.');
+      } else {
+        setError(err.message || 'Invalid email or password.');
+      }
+    } finally {
       setIsLoading(false);
-      setInfoMessage('Login backend endpoint (POST /api/auth/login) is currently under development (Phase 3.3). Only Signup is active.');
-    }, 800);
+    }
   };
 
   return (
