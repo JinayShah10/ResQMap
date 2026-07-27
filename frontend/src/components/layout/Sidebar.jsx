@@ -1,4 +1,3 @@
-import React from 'react';
 import { mockFacilities } from '../../data/mockFacilities';
 
 const CATEGORIES = [

@@ -105,3 +105,14 @@ html, body, #root {
 .maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
   border-top-color: #1a1e27 !important;
 }
+
+/* Floating Auth Card Animation */
+@keyframes authCardFloat {
+  0% { transform: translateY(-5px) rotate(0.1deg); }
+  50% { transform: translateY(5px) rotate(-0.1deg); }
+  100% { transform: translateY(-5px) rotate(0.1deg); }
+}
+
+.auth-card-floating {
+  animation: authCardFloat 9s ease-in-out infinite;
+}

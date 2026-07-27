@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import GeospatialBackground from '../components/layout/GeospatialBackground';
+import { API_BASE_URL } from '../constants/mapConfig';
 
 const Login = ({ onNavigate, onBackToMap, isAuthenticated, onLoginSuccess }) => {
   const [email, setEmail] = useState('');
@@ -29,7 +30,7 @@ const Login = ({ onNavigate, onBackToMap, isAuthenticated, onLoginSuccess }) => 
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5001/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,16 +65,6 @@ const Login = ({ onNavigate, onBackToMap, isAuthenticated, onLoginSuccess }) => 
 
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center md:justify-end md:pr-24 p-4 bg-transparent overflow-y-auto select-none">
-      <style>{`
-        @keyframes authCardFloat {
-          0% { transform: translateY(-5px) rotate(0.1deg); }
-          50% { transform: translateY(5px) rotate(-0.1deg); }
-          100% { transform: translateY(-5px) rotate(0.1deg); }
-        }
-        .auth-card-floating {
-          animation: authCardFloat 9s ease-in-out infinite;
-        }
-      `}</style>
       <GeospatialBackground />
       
       {/* Navigation Directions Panel (Responsive Overlay HUD) */}

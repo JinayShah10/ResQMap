@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Header = ({ mode, setMode, mapStyle, setMapStyle, isSidebarOpen, setIsSidebarOpen, onNavigate, isAuthenticated, onLogout }) => {
   return (
     <header className="fixed top-0 left-0 right-0 h-16 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 z-50 px-4 md:px-6 flex items-center justify-between select-none animate-fade-in-header">
