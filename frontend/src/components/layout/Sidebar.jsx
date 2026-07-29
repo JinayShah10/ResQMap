@@ -1,5 +1,3 @@
-import { mockFacilities } from '../../data/mockFacilities';
-
 const CATEGORIES = [
   { name: 'Hospitals', label: 'Hospitals', icon: '🏥' },
   { name: 'Police Stations', label: 'Police Stations', icon: '🚨' },
@@ -14,11 +12,12 @@ const Sidebar = ({
   selectedCategory,
   setSelectedCategory,
   selectedFacility,
-  setSelectedFacility
+  setSelectedFacility,
+  facilities = [],
+  loading = false,
+  error = null
 }) => {
-  const filteredFacilities = mockFacilities.filter(
-    (facility) => facility.category === selectedCategory
-  );
+  const filteredFacilities = facilities;
 
   return (
     <aside className={`fixed md:static inset-y-0 md:inset-y-auto left-0 md:top-16 md:bottom-0 w-80 bg-slate-900/95 md:bg-slate-900/90 backdrop-blur-md border-r border-slate-800 z-50 md:z-40 flex flex-col shadow-2xl md:shadow-none transition-transform duration-300 ease-in-out motion-reduce:transition-none animate-fade-in-sidebar ${
@@ -75,7 +74,8 @@ const Sidebar = ({
               <button
                 key={category.name}
                 onClick={() => setSelectedCategory(category.name)}
-                className={`border rounded-lg p-2 flex flex-col items-center justify-center space-y-1 active:scale-[0.98] transition-all duration-200 outline-none cursor-pointer ${
+                disabled={loading}
+                className={`border rounded-lg p-2 flex flex-col items-center justify-center space-y-1 active:scale-[0.98] transition-all duration-200 outline-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
                   index === CATEGORIES.length - 1 ? 'col-span-2' : ''
                 } ${
                   isSelected
@@ -94,6 +94,8 @@ const Sidebar = ({
           })}
         </div>
       </div>
+
+
 
       {/* Selected Facility Details Card (if active) */}
       {selectedFacility && (
@@ -121,12 +123,14 @@ const Sidebar = ({
               </svg>
               <span>{selectedFacility.address}</span>
             </p>
-            <p className="text-[11px] text-slate-300 flex items-center gap-1">
-              <svg className="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 00.996.808H12a1 1 0 00.996-.808l.548-2.2A1 1 0 0115.3 3H18.5a2 2 0 012 2v3.28a1 1 0 01-.725.94l-2.2.548a1 1 0 00-.808.996V14a1 1 0 00.808.996l2.2.548a1 1 0 01.725.94V18.5a2 2 0 01-2 2h-3.28a1 1 0 01-.94-.725l-.548-2.2a1 1 0 00-.996-.808H12a1 1 0 00-.996.808l-.548 2.2a1 1 0 01-.94.725H5a2 2 0 01-2-2v-3.28a1 1 0 01.725-.94l2.2-.548a1 1 0 00.808-.996V10a1 1 0 00-.808-.996l-2.2-.548A1 1 0 013 8.5V5z" />
-              </svg>
-              <span>{selectedFacility.phone}</span>
-            </p>
+            {selectedFacility.phone && (
+              <p className="text-[11px] text-slate-300 flex items-center gap-1">
+                <svg className="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 00.996.808H12a1 1 0 00.996-.808l.548-2.2A1 1 0 0115.3 3H18.5a2 2 0 012 2v3.28a1 1 0 01-.725.94l-2.2.548a1 1 0 00-.808.996V14a1 1 0 00.808.996l2.2.548a1 1 0 01.725.94V18.5a2 2 0 01-2 2h-3.28a1 1 0 01-.94-.725l-.548-2.2a1 1 0 00-.996-.808H12a1 1 0 00-.996.808l-.548 2.2a1 1 0 01-.94.725H5a2 2 0 01-2-2v-3.28a1 1 0 01.725-.94l2.2-.548a1 1 0 00.808-.996V10a1 1 0 00-.808-.996l-2.2-.548A1 1 0 013 8.5V5z" />
+                </svg>
+                <span>{selectedFacility.phone}</span>
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -137,15 +141,24 @@ const Sidebar = ({
           <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
             {selectedCategory ? `${selectedCategory}` : 'Nearby Facilities'}
           </span>
-          {selectedCategory && (
+          {selectedCategory && !loading && !error && (
             <span className="text-[10px] text-slate-500 font-mono">
-              {filteredFacilities.length} found
+              {filteredFacilities.length === 0 ? 'No facilities found within the selected radius.' : `${filteredFacilities.length} found`}
             </span>
           )}
         </div>
         
         {selectedCategory ? (
-          filteredFacilities.length > 0 ? (
+          loading ? (
+            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-3 shrink-0">
+              <div className="w-8 h-8 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"></div>
+              <span className="text-xs text-slate-400">Fetching nearby locations...</span>
+            </div>
+          ) : error ? (
+            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-3 shrink-0">
+              <span className="text-xs text-rose-400">{error}</span>
+            </div>
+          ) : filteredFacilities.length > 0 ? (
             <div className="p-4 pt-1 space-y-3 overflow-y-auto">
               {filteredFacilities.map((facility) => {
                 const isSelected = selectedFacility?.id === facility.id;
@@ -174,19 +187,21 @@ const Sidebar = ({
                       </svg>
                       <span>{facility.address}</span>
                     </p>
-                    <p className="text-[11px] text-slate-400 flex items-center gap-1.5">
-                      <svg className="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 00.996.808H12a1 1 0 00.996-.808l.548-2.2A1 1 0 0115.3 3H18.5a2 2 0 012 2v3.28a1 1 0 01-.725.94l-2.2.548a1 1 0 00-.808.996V14a1 1 0 00.808.996l2.2.548a1 1 0 01.725.94V18.5a2 2 0 01-2 2h-3.28a1 1 0 01-.94-.725l-.548-2.2a1 1 0 00-.996-.808H12a1 1 0 00-.996.808l-.548 2.2a1 1 0 01-.94.725H5a2 2 0 01-2-2v-3.28a1 1 0 01.725-.94l2.2-.548a1 1 0 00.808-.996V10a1 1 0 00-.808-.996l-2.2-.548A1 1 0 013 8.5V5z" />
-                      </svg>
-                      <span>{facility.phone}</span>
-                    </p>
+                    {facility.phone && (
+                      <p className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                        <svg className="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 00.996.808H12a1 1 0 00.996-.808l.548-2.2A1 1 0 0115.3 3H18.5a2 2 0 012 2v3.28a1 1 0 01-.725.94l-2.2.548a1 1 0 00-.808.996V14a1 1 0 00.808.996l2.2.548a1 1 0 01.725.94V18.5a2 2 0 01-2 2h-3.28a1 1 0 01-.94-.725l-.548-2.2a1 1 0 00-.996-.808H12a1 1 0 00-.996.808l-.548 2.2a1 1 0 01-.94.725H5a2 2 0 01-2-2v-3.28a1 1 0 01.725-.94l2.2-.548a1 1 0 00.808-.996V10a1 1 0 00-.808-.996l-2.2-.548A1 1 0 013 8.5V5z" />
+                        </svg>
+                        <span>{facility.phone}</span>
+                      </p>
+                    )}
                   </div>
                 );
               })}
             </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-3 shrink-0">
-              <span className="text-xs text-slate-500">No facilities found.</span>
+              <span className="text-xs text-slate-500">No facilities found within the selected radius.</span>
             </div>
           )
         ) : (
@@ -215,5 +230,6 @@ const Sidebar = ({
     </aside>
   );
 };
+
 
 export default Sidebar;

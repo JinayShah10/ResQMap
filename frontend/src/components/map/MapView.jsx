@@ -7,7 +7,6 @@ import {
   PERSPECTIVE_BEARING,
   CAMERA_TRANSITION_DURATION
 } from '../../constants/mapConfig';
-import { mockFacilities } from '../../data/mockFacilities';
 
 // Helper to determine active building opacity based on theme & mode
 const getBuildingOpacity = (map, currentMode) => {
@@ -99,7 +98,16 @@ const add3DBuildingLayer = (map, currentMode) => {
   }
 };
 
-const MapView = ({ mode, mapStyle, selectedCategory, selectedFacility, setSelectedFacility }) => {
+const MapView = ({ 
+  mode, 
+  mapStyle, 
+  selectedCategory, 
+  selectedFacility, 
+  setSelectedFacility,
+  facilities = [],
+  onUserLocationChange,
+  zoomToUserLocationTrigger
+}) => {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const modeRef = useRef(mode);
@@ -109,6 +117,12 @@ const MapView = ({ mode, mapStyle, selectedCategory, selectedFacility, setSelect
   const [userLocation, setUserLocation] = useState(null);
   const [hasCentered, setHasCentered] = useState(false);
   const userMarkerInstanceRef = useRef(null);
+  const selectedPopupRef = useRef(null);
+
+  const onLocationChangeRef = useRef(onUserLocationChange);
+  useEffect(() => {
+    onLocationChangeRef.current = onUserLocationChange;
+  }, [onUserLocationChange]);
 
   // Inject custom CSS for user location marker animations
   useEffect(() => {
@@ -163,6 +177,9 @@ const MapView = ({ mode, mapStyle, selectedCategory, selectedFacility, setSelect
     const handleSuccess = (position) => {
       const { latitude, longitude } = position.coords;
       setUserLocation({ latitude, longitude });
+      if (onLocationChangeRef.current) {
+        onLocationChangeRef.current({ latitude, longitude });
+      }
     };
 
     const handleError = (error) => {
@@ -230,6 +247,19 @@ const MapView = ({ mode, mapStyle, selectedCategory, selectedFacility, setSelect
       setHasCentered(true);
     }
   }, [userLocation, isMapReady, hasCentered]);
+
+  // Zoom to user location when trigger changes
+  useEffect(() => {
+    const map = mapRef.current;
+    if (zoomToUserLocationTrigger > 0 && map && isMapReady && userLocation) {
+      map.flyTo({
+        center: [userLocation.longitude, userLocation.latitude],
+        zoom: 14.5,
+        duration: 1500,
+        essential: true
+      });
+    }
+  }, [zoomToUserLocationTrigger, isMapReady, userLocation]);
 
   // Clean up user marker on unmount
   useEffect(() => {
@@ -351,10 +381,15 @@ const MapView = ({ mode, mapStyle, selectedCategory, selectedFacility, setSelect
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
 
-    // Filter facilities based on active category
-    const filtered = mockFacilities.filter(
-      (facility) => facility.category === selectedCategory
-    );
+    // Filter facilities based on active category and remove any duplicates
+    const seenIds = new Set();
+    const filtered = facilities.filter((facility) => {
+      if (facility.category !== selectedCategory) return false;
+      const uniqueId = facility.id || `${facility.latitude}-${facility.longitude}`;
+      if (seenIds.has(uniqueId)) return false;
+      seenIds.add(uniqueId);
+      return true;
+    });
 
     filtered.forEach((facility) => {
       // Outer wrapper element (Geographic anchor - position managed by MapLibre)
@@ -384,6 +419,9 @@ const MapView = ({ mode, mapStyle, selectedCategory, selectedFacility, setSelect
       innerEl.style.cursor = 'pointer';
       innerEl.style.transition = 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)';
       innerEl.style.transform = 'scale(1)';
+
+      // Apply fade-in and pop spawn animation
+      innerEl.classList.add('animate-marker-spawn');
 
       // Set category specific emojis
       let emoji = '📍';
@@ -421,10 +459,12 @@ const MapView = ({ mode, mapStyle, selectedCategory, selectedFacility, setSelect
                   <span style="flex-shrink: 0; margin-top: 1px;">📍</span>
                   <span>${facility.address}</span>
                 </p>
+                ${facility.phone ? `
                 <p style="margin: 2px 0 0 0; font-size: 10px; color: #b0bcd3; display: flex; align-items: center; gap: 4px;">
                   <span style="flex-shrink: 0;">📞</span>
                   <span>${facility.phone}</span>
                 </p>
+                ` : ''}
               </div>
             `)
             .addTo(mapRef.current);
@@ -466,7 +506,7 @@ const MapView = ({ mode, mapStyle, selectedCategory, selectedFacility, setSelect
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
     };
-  }, [selectedCategory, selectedFacility, isMapReady, setSelectedFacility]);
+  }, [facilities, selectedCategory, selectedFacility, isMapReady, setSelectedFacility]);
 
   // Smooth camera zoom/pan to selected facility coordinates
   useEffect(() => {
@@ -480,6 +520,71 @@ const MapView = ({ mode, mapStyle, selectedCategory, selectedFacility, setSelect
       essential: true
     });
   }, [selectedFacility, isMapReady]);
+
+  // Handle selected facility popup rendering
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isMapReady) return;
+
+    if (selectedPopupRef.current) {
+      selectedPopupRef.current.remove();
+      selectedPopupRef.current = null;
+    }
+
+    if (!selectedFacility) return;
+
+    const origin = userLocation ? `${userLocation.latitude},${userLocation.longitude}` : '';
+    
+    // Create the select popup html content
+    const popupHtml = `
+      <div style="font-family: system-ui, -apple-system, sans-serif; padding: 12px; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 8px; color: #f8fafc; min-width: 250px; text-align: left; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px;">
+          <h4 style="margin: 0; font-size: 13px; font-weight: 700; color: #ffffff; line-height: 1.2;">${selectedFacility.name}</h4>
+          <span style="font-size: 9px; font-weight: 600; background-color: #020617; color: #34d399; border: 1px solid #1e293b; padding: 2px 6px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; text-transform: uppercase;">
+            ${selectedFacility.category}
+          </span>
+        </div>
+        <p style="margin: 6px 0; font-size: 11px; color: #cbd5e1; line-height: 1.4; display: flex; align-items: flex-start; gap: 4px;">
+          <span style="flex-shrink: 0; margin-top: 1px;">📍</span>
+          <span>${selectedFacility.address}</span>
+        </p>
+        <p style="margin: 6px 0; font-size: 11px; color: #94a3b8; font-weight: 600;">
+          📏 ${selectedFacility.distance ? `${selectedFacility.distance}m away` : 'Distance unknown'}
+        </p>
+        <div style="display: flex; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid #1e293b;">
+          <a href="https://www.google.com/maps/search/?api=1&query=${selectedFacility.latitude},${selectedFacility.longitude}" target="_blank" rel="noopener noreferrer" style="flex: 1; background-color: #1e293b; color: #cbd5e1; border: 1px solid #334155; border-radius: 6px; padding: 6px; font-size: 10px; font-weight: 600; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px; transition: background-color 0.2s; cursor: pointer;">
+            🌐 Map
+          </a>
+          <a href="https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${selectedFacility.latitude},${selectedFacility.longitude}&travelmode=driving" target="_blank" rel="noopener noreferrer" style="flex: 1; background-color: #10b981; color: #020617; border: 1px solid #34d399; border-radius: 6px; padding: 6px; font-size: 10px; font-weight: 700; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px; transition: background-color 0.2s; cursor: pointer;">
+            🚀 Navigate
+          </a>
+        </div>
+      </div>
+    `;
+
+    const popup = new maplibregl.Popup({
+      closeButton: true,
+      closeOnClick: false,
+      offset: 20,
+      className: 'custom-selected-popup'
+    })
+    .setLngLat([selectedFacility.longitude, selectedFacility.latitude])
+    .setHTML(popupHtml)
+    .addTo(map);
+
+    selectedPopupRef.current = popup;
+
+    popup.on('close', () => {
+      setSelectedFacility(null);
+    });
+
+    return () => {
+      if (selectedPopupRef.current) {
+        selectedPopupRef.current.remove();
+        selectedPopupRef.current = null;
+      }
+    };
+  }, [selectedFacility, isMapReady, userLocation, setSelectedFacility]);
 
   return (
     <div className="relative w-full h-full">

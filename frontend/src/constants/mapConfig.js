@@ -48,4 +48,5 @@ export const CAMERA_TRANSITION_DURATION = 1500; // in ms
 export const PERSPECTIVE_PITCH = 55; // Pitch for 3D/perspective mode (45-60 deg)
 export const PERSPECTIVE_BEARING = -15; // Bearing for 3D/perspective mode
 
-export const API_BASE_URL = 'http://localhost:5001/api/auth';
+export const API_BASE_URL = 'http://localhost:5002/api/auth';
+
