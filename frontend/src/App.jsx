@@ -5,6 +5,8 @@ import LiveCounter from './components/layout/LiveCounter';
 import MapView from './components/map/MapView';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import ChatButton from './components/chat/ChatButton';
+import ChatModal from './components/chat/ChatModal';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -98,6 +100,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [zoomToUserLocationTrigger, setZoomToUserLocationTrigger] = useState(0);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Callback to track user location updates
   const handleUserLocationChange = (location) => {
@@ -282,6 +285,10 @@ function App() {
           onZoomToLocation={() => setZoomToUserLocationTrigger(prev => prev + 1)}
         />
       </div>
+      
+      {/* AI Assistant Chat Component */}
+      <ChatButton onClick={() => setIsChatOpen(true)} isOpen={isChatOpen} />
+      <ChatModal isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
     </div>
   );
 
