@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import ChatHeader from "./ChatHeader";
 import ChatMessages from "./ChatMessages";
 import ChatInput from "./ChatInput";
+import { sendMessage } from "../../services/chatService";
 
 const ChatModal = ({ isOpen, onClose }) => {
   const [messages, setMessages] = useState([]);
@@ -19,7 +20,9 @@ const ChatModal = ({ isOpen, onClose }) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  const handleSendMessage = (text) => {
+  const handleSendMessage = async (text) => {
+    if (isLoading) return; // Prevent duplicate requests
+
     const currentTime = new Date().toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit"
@@ -34,22 +37,48 @@ const ChatModal = ({ isOpen, onClose }) => {
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
-    // Mock Assistant response logic
-    setTimeout(() => {
+    try {
+      const data = await sendMessage(text);
       const assistantTime = new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit"
       });
 
+      if (data && data.success) {
+        const assistantMessage = {
+          sender: "assistant",
+          text: data.answer,
+          timestamp: assistantTime
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+      } else {
+        throw new Error("Invalid response");
+      }
+    } catch (err) {
+      const assistantTime = new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      let errorText = "Unable to contact the AI assistant. Please try again.";
+
+      if (err.code === "ECONNABORTED" || err.message?.includes("timeout") || (err.response && err.response.status === 504)) {
+        errorText = "The AI assistant took too long to respond.";
+      } else if (!navigator.onLine || err.message?.includes("Network Error")) {
+        errorText = "Network error. Please check your connection.";
+      } else if (err.response && err.response.status === 500) {
+        errorText = "Unable to contact the AI assistant. Please try again.";
+      }
+
       const assistantMessage = {
         sender: "assistant",
-        text: "This is a placeholder response. Backend integration will be added in the next phase.",
+        text: errorText,
         timestamp: assistantTime
       };
-
       setMessages((prev) => [...prev, assistantMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleSelectPrompt = (promptText) => {

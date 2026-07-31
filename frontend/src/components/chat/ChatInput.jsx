@@ -24,6 +24,13 @@ const ChatInput = ({ onSendMessage, isLoading, inputValue, setInputValue }) => {
     textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
   }, [inputValue]);
 
+  // Automatically focus input after every response is received
+  useEffect(() => {
+    if (!isLoading && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [isLoading]);
+
   return (
     <div className="p-3 border-t border-slate-800 bg-slate-900/95 shrink-0 flex items-end gap-2">
       <div className="relative flex-grow flex items-center bg-slate-950/60 border border-slate-800 focus-within:border-emerald-500/50 rounded-2xl px-4 py-1 transition-all">

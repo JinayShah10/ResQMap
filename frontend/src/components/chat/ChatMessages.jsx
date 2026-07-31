@@ -30,7 +30,7 @@ const ChatMessages = ({ messages, isLoading, onSelectPrompt }) => {
           <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 text-left pl-2">
             Suggested Topics
           </div>
-          <SuggestedPrompts onSelectPrompt={onSelectPrompt} />
+          <SuggestedPrompts onSelectPrompt={onSelectPrompt} disabled={isLoading} />
         </div>
         <div ref={bottomRef} />
       </div>

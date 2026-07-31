@@ -39,6 +39,7 @@ def get_embeddings():
 # Load Documents
 # ====================================================
 def load_documents():
+    print("Loading documents...", file=sys.stderr)
     loader = DirectoryLoader(
         DATA_PATH,
         glob="*.txt",
@@ -54,7 +55,7 @@ def load_documents():
 def build_vector_store():
     documents = load_documents()
     
-    print("Splitting documents...")
+    print("Splitting documents...", file=sys.stderr)
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
         chunk_overlap=50,
@@ -62,13 +63,12 @@ def build_vector_store():
     )
     chunks = text_splitter.split_documents(documents)
     
-    print("Generating embeddings...")
-    # embeddings already loaded in get_embeddings()
+    print("Generating embeddings...", file=sys.stderr)
     
-    print("Creating FAISS index...")
+    print("Creating FAISS index...", file=sys.stderr)
     db_instance = FAISS.from_documents(chunks, embeddings)
     
-    print("Saving vector database...")
+    print("Saving vector database...", file=sys.stderr)
     if os.path.exists(INDEX_FAISS_PATH):
         os.remove(INDEX_FAISS_PATH)
     if os.path.exists(INDEX_PKL_PATH):
@@ -81,6 +81,7 @@ def build_vector_store():
 # Load Existing Vector Store
 # ====================================================
 def load_vector_store():
+    print("Loading vector database...", file=sys.stderr)
     db_instance = FAISS.load_local(VECTORSTORE_PATH, embeddings, allow_dangerous_deserialization=True)
     return db_instance
 
@@ -90,31 +91,37 @@ def load_vector_store():
 def initialize_system():
     global db, embeddings, llm, retriever, rag_chain
     
-    print("Loading environment...")
-    load_dotenv()
+    print("Loading environment...", file=sys.stderr)
+    # Target the backend/.env file explicitly
+    dotenv_path = os.path.join(CURRENT_DIR, "..", ".env")
+    if not os.path.exists(dotenv_path):
+        raise FileNotFoundError("Google API key not found in backend/.env")
+        
+    load_dotenv(dotenv_path=dotenv_path)
     
-    print("Loading embeddings...")
+    google_api_key = os.getenv("GOOGLE_API_KEY")
+    if not google_api_key or google_api_key.strip() == "":
+        raise ValueError("Google API key not found in backend/.env")
+    
+    print("Loading embeddings...", file=sys.stderr)
     embeddings = get_embeddings()
     
-    print("Loading FAISS...")
+    print("Loading FAISS...", file=sys.stderr)
     if os.path.exists(INDEX_FAISS_PATH) and os.path.exists(INDEX_PKL_PATH):
         db = load_vector_store()
     else:
-        print("Vector database not found.")
-        print("Building vector database...")
-        print("Loading documents...")
+        print("Vector database not found.", file=sys.stderr)
+        print("Building vector database...", file=sys.stderr)
         db = build_vector_store()
         
-    print("Initializing Gemini...")
-    google_api_key = os.getenv("GOOGLE_API_KEY")
-    if not google_api_key:
-        google_api_key = "DUMMY_GOOGLE_API_KEY"
+    print("Initializing Gemini...", file=sys.stderr)
+    # Use the latest supported Flash model in this environment (gemini-3.6-flash)
     llm = ChatGoogleGenerativeAI(
-        model="gemini-1.5-flash",
+        model="gemini-3.6-flash",
         google_api_key=google_api_key
     )
     
-    print("Building LCEL pipeline...")
+    print("Building LCEL pipeline...", file=sys.stderr)
     retriever = db.as_retriever(search_kwargs={"k": 4})
     
     prompt = ChatPromptTemplate.from_messages([
@@ -139,10 +146,14 @@ def initialize_system():
         | StrOutputParser()
     )
     
-    print("Ready.")
+    print("Ready.", file=sys.stderr)
 
 # Automatically initialize system when imported or executed
-initialize_system()
+try:
+    initialize_system()
+except Exception as e:
+    print(f"Initialization Error: {e}", file=sys.stderr)
+    sys.exit(1)
 
 # ====================================================
 # Chat Function
@@ -154,25 +165,42 @@ def chat(query):
 # Main
 # ====================================================
 def main():
-    print("ResQMap AI Ready")
-    try:
-        while True:
-            try:
-                query = input("> ")
-            except (EOFError, KeyboardInterrupt):
-                break
-            if not query.strip():
-                continue
-            if query.strip().lower() in ["exit", "quit"]:
-                break
-            try:
-                response = chat(query)
-                print(response)
-            except Exception as e:
-                print(f"Error: {e}")
-            print()
-    except KeyboardInterrupt:
-        pass
+    if len(sys.argv) > 1 and sys.argv[1] == "--api":
+        # API Mode: Read single query from stdin, output only the answer to stdout, and exit.
+        try:
+            query = sys.stdin.read().strip()
+            if not query:
+                sys.exit(0)
+            response = chat(query)
+            print(response)
+        except Exception as e:
+            if "404" in str(e) or "NOT_FOUND" in str(e):
+                print("Model gemini-3.6-flash failed: model not found or unsupported.", file=sys.stderr)
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
+    else:
+        # Interactive CLI Mode
+        print("ResQMap AI Ready")
+        try:
+            while True:
+                try:
+                    query = input("> ")
+                except (EOFError, KeyboardInterrupt):
+                    break
+                if not query.strip():
+                    continue
+                if query.strip().lower() in ["exit", "quit"]:
+                    break
+                try:
+                    response = chat(query)
+                    print(response)
+                except Exception as e:
+                    if "404" in str(e) or "NOT_FOUND" in str(e):
+                        print("Model gemini-3.6-flash failed: model not found or unsupported.", file=sys.stderr)
+                    print(f"Error: {e}")
+                print()
+        except KeyboardInterrupt:
+            pass
 
 if __name__ == "__main__":
     main()

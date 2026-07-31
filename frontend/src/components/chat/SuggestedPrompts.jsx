@@ -9,14 +9,15 @@ const PROMPTS = [
   "Road accident response."
 ];
 
-const SuggestedPrompts = ({ onSelectPrompt }) => {
+const SuggestedPrompts = ({ onSelectPrompt, disabled }) => {
   return (
     <div className="flex flex-wrap gap-2 p-2">
       {PROMPTS.map((prompt) => (
         <button
           key={prompt}
+          disabled={disabled}
           onClick={() => onSelectPrompt(prompt)}
-          className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/50 rounded-full px-3 py-1.5 transition-colors cursor-pointer active:scale-95"
+          className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/50 rounded-full px-3 py-1.5 transition-colors cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {prompt}
         </button>
