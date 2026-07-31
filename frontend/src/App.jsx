@@ -205,7 +205,7 @@ function App() {
       clearTimeout(timer);
       isMounted = false;
     };
-  }, [userLocation?.latitude, userLocation?.longitude, selectedCategory]);
+  }, [userLocation, selectedCategory]);
 
   // If category changes, reset selected facility
   const handleSetCategory = (category) => {

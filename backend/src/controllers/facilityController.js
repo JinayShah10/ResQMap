@@ -30,11 +30,6 @@ const PREFER_HOSPITAL = [
   'civil hospital', 'super speciality', 'super speciality hospital', 'emergency hospital'
 ];
 
-const KEEP_POLICE = [
-  'police station', 'traffic police', 'police headquarter', 'police headquarters',
-  'police chowk', 'police chowkey', 'police chowkie', 'police chowky', 'police chowki',
-  'control room', 'police control'
-];
 
 const EXCLUDE_POLICE = [
   'housing', 'colony', 'quarters', 'quarter', 'welfare', 'training', 'school',
@@ -66,7 +61,6 @@ const EXCLUDE_PHARMACY = [
 const excludeHospitalRegex = new RegExp(`\\b(${EXCLUDE_HOSPITAL.map(k => k.replace(/centre/g, 'cent(re|er)').replace(/center/g, 'cent(re|er)')).join('|')})\\b`, 'i');
 const preferHospitalRegex = new RegExp(`\\b(${PREFER_HOSPITAL.map(k => k.replace(/centre/g, 'cent(re|er)').replace(/center/g, 'cent(re|er)')).join('|')})\\b`, 'i');
 
-const keepPoliceRegex = new RegExp(`\\b(${KEEP_POLICE.map(k => k.replace(/centre/g, 'cent(re|er)').replace(/center/g, 'cent(re|er)')).join('|')})\\b`, 'i');
 const excludePoliceRegex = new RegExp(`\\b(${EXCLUDE_POLICE.map(k => k.replace(/centre/g, 'cent(re|er)').replace(/center/g, 'cent(re|er)')).join('|')})\\b`, 'i');
 
 const keepFireRegex = new RegExp(`\\b(${KEEP_FIRE.map(k => k.replace(/centre/g, 'cent(re|er)').replace(/center/g, 'cent(re|er)')).join('|')})\\b`, 'i');
